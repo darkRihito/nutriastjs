@@ -1,7 +1,8 @@
 import authorization from "../middleware/authorization.js";
+import jwt from 'jsonwebtoken';
 
-const get = async (req, res, next) => {
-  const userId = req.body.id;
+const post = async (req, res, next) => {
+  const { userId, password } = req.params;
   try {
     const token = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET);
     return res
@@ -19,5 +20,5 @@ const get = async (req, res, next) => {
 
 // EXPORT
 export default {
-  get,
+  post,
 };

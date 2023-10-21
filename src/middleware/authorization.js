@@ -1,24 +1,27 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 
-const app = express();
-
-app.use(cookieParser());
-
-function authorization (req, res, next) {
+function authorization(req, res, next) {
   const token = req.cookies.access_token;
+  console.log(token)
   if (!token) {
-    return res.sendStatus(403);
+    return res.sendStatus(403).json({
+      success: false,
+      message: "Token tidak valid",
+    });
   }
   try {
-    const data = jwt.verify(token, "YOUR_SECRET_KEY");
-    req.userId = data.id;
-    req.userRole = data.role;
+    const data = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    req.userId = data.userId;
+    // req.userRole = data.role;
     return next();
-  } catch {
-    return res.sendStatus(403);
+  } catch (error) {
+    return res.sendStatus(403).json({
+      success: false,
+      message: error.message,
+    });
   }
-};
+}
 
 export default authorization;

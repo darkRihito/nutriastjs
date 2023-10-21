@@ -206,5 +206,4 @@ export default {
   get,
   getById,
   register,
-
 };

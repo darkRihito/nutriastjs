@@ -1,8 +1,10 @@
 import ResponseClass from "../utils/response.js";
+import fetch from "node-fetch";
+import { Users } from "../models/user.model.js";
 
 const predict = async (req, res, next) => {
   // get userid from params
-  const { userId } = request.params;
+  const { userId } = req.params;
   try {
     // get user data profile
     try {
@@ -45,13 +47,13 @@ const predict = async (req, res, next) => {
         gender: gender,
         height: userdata.height,
         weight: userdata.weight,
-        ap_hi: request.body.ap_hi,
-        ap_lo: request.body.ap_lo,
-        cholesterol: request.body.cholesterol,
-        gluc: request.body.gluc,
-        smoke: request.body.smoke,
-        alco: request.body.alco,
-        active: request.body.active,
+        ap_hi: req.body.ap_hi,
+        ap_lo: req.body.ap_lo,
+        cholesterol: req.body.cholesterol,
+        gluc: req.body.gluc,
+        smoke: req.body.smoke,
+        alco: req.body.alco,
+        active: req.body.active,
       };
       try {
         // Make a POST request to the prediction API
@@ -74,12 +76,12 @@ const predict = async (req, res, next) => {
         }
         // Update the database with prediction data
         const updateValues = {
-          cholesterol: request.body.cholesterol,
-          glucose: request.body.gluc,
+          cholesterol: req.body.cholesterol,
+          glucose: req.body.gluc,
           cardiovascular: cardiovascular,
-          smoke: request.body.smoke,
-          alcho: request.body.alco,
-          active: request.body.active,
+          smoke: req.body.smoke,
+          alcho: req.body.alco,
+          active: req.body.active,
         };
         await Users.update(updateValues, { where: { id: userId } });
       } catch (error) {

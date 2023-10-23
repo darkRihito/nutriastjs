@@ -3,27 +3,68 @@ import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcrypt";
 
+import ResponseClass from "../utils/response.js";
+import { Users } from "../models/user.model.js";
+
 const login = async (req, res, next) => {
-  const { userId } = req.params;
-  try {
-    const token = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET);
-    return res
-      .cookie("access_token", token, {
-        httpOnly: true,
-        maxAge: 86400000, // Cookie will expire after 1 day (in milliseconds)
-        // secure: process.env.NODE_ENV === "production",
-      })
-      .status(200)
-      .json({
-        message: "Logged in successfully!",
-        data: {
-          userId: userId,
-          authenticationToken: token,
-        },
-      });
-  } catch (error) {
-    console.error(`Error while login user`, error.message);
-    next(error);
+  // const { userId } = req.params;
+  if (!req.body.email || !req.body.password) {
+    const responseError = new ResponseClass.ErrorResponse(
+      "failed",
+      400,
+      "Email or Password is missing!"
+    );
+    return res.status(400).json(responseError);
+  } else {
+    // Find email from request body in the database
+    const userRegistered = await Users.findOne({
+      where: { email: req.body.email },
+    });
+    if (userRegistered == null) {
+      const responseError = new ResponseClass.ErrorResponse(
+        "failed",
+        400,
+        "Email not found!"
+      );
+      return res.status(400).json(responseError);
+    } else {
+      // Compare request body password with password in the database
+      const matchPassword = await bcrypt.compare(
+        req.body.password,
+        userRegistered.password
+      );
+      if (!matchPassword) {
+        const responseError = new ResponseClass.ErrorResponse(
+          "failed",
+          400,
+          "Wrong password!"
+        );
+        return res.status(400).json(responseError);
+      } else {
+        // Generate a token for this user and send it to client side
+        try {
+          const token = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET);
+          return res
+            .cookie("access_token", token, {
+              httpOnly: true,
+              // maxAge: 86400000, // Cookie will expire after 1 day (in milliseconds)
+              // secure: process.env.NODE_ENV === "production",
+              expiresIn: "7d"
+            })
+            .status(200)
+            .json({
+              message: "Logged in successfully!",
+              data: {
+                userId: userId,
+                authenticationToken: token,
+              },
+            });
+        } catch (error) {
+          console.error(`Error while login user`, error.message);
+          next(error);
+        }
+      }
+    }
   }
 };
 
@@ -48,7 +89,7 @@ const register = async (req, res, next) => {
       return res.status(400).json(responseError);
     } else {
       // Parse the birthdate from the request body
-      const parsedBirthdate = new Date(req.birthdate);
+      let parsedBirthdate = new Date(req.birthdate);
       // Variable initialization
       let age = 0;
       let fatneed = 0.0;
@@ -62,9 +103,9 @@ const register = async (req, res, next) => {
       let mediumphysical = 1.55; // olahragawan biasa
       let hardphysical = 1.725; // atlet atau orang yang melakukan pekerjaan fisik berat
       // Calculate age
-      const birthdate = new Date(req.birthdate);
-      const ageDiffMs = Date.now() - birthdate.getTime();
-      const ageDate = new Date(ageDiffMs);
+      let birthdate = new Date(req.birthdate);
+      let ageDiffMs = Date.now() - birthdate.getTime();
+      let ageDate = new Date(ageDiffMs);
       age = Math.abs(ageDate.getUTCFullYear() - 1970);
       // Calculate BMR (Basal Metabolic Rate) using Harris-Benedict equation
       if (req.gender == "male") {
@@ -101,7 +142,7 @@ const register = async (req, res, next) => {
           const salt = await bcrypt.genSalt();
           const hashPass = await bcrypt.hash(req.password, salt);
           // Create data object for user registration
-          const data = {
+          let data = {
             id: uuidv4(),
             name: req.name,
             email: req.email,

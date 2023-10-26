@@ -1,5 +1,6 @@
-import ResponseClass from "../utils/response.js";
 import { Users } from "../models/user.model.js";
+
+import ResponseClass from "../utils/response.js";
 
 // get all users
 const get = async (req, res, next) => {

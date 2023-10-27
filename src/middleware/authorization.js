@@ -6,7 +6,7 @@ function authorization(req, res, next) {
   const token = req.cookies.access_token;
   console.log(token)
   if (!token) {
-    return res.sendStatus(403).json({
+    return res.status(403).json({
       success: false,
       message: "Token tidak valid",
     });
@@ -17,7 +17,7 @@ function authorization(req, res, next) {
     // req.userRole = data.role;
     return next();
   } catch (error) {
-    return res.sendStatus(403).json({
+    return res.status(403).json({
       success: false,
       message: error.message,
     });

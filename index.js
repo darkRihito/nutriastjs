@@ -23,8 +23,9 @@ app.use(
 // cors
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:3000",
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 

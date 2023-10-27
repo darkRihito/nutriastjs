@@ -43,25 +43,29 @@ const login = async (req, res, next) => {
       } else {
         // Generate a token for this user and send it to client side
         try {
-          const token = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET);
+          const token = jwt.sign(
+            { userRegistered },
+            process.env.ACCESS_TOKEN_SECRET
+          );
           return res
             .cookie("access_token", token, {
               httpOnly: true,
               // maxAge: 86400000, // Cookie will expire after 1 day (in milliseconds)
               // secure: process.env.NODE_ENV === "production",
-              expiresIn: "7d"
+              expiresIn: "7d",
             })
             .status(200)
             .json({
               message: "Logged in successfully!",
               data: {
-                userId: userId,
+                userId: userRegistered.id,
                 authenticationToken: token,
+                username: userRegistered.username,
               },
             });
         } catch (error) {
           console.error(`Error while login user`, error.message);
-          next(error);
+          return res.status(500).json({ message: "Internal server error" });
         }
       }
     }

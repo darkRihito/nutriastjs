@@ -44,6 +44,12 @@ const getById = async (req, res, next) => {
           "cardiovascular",
         ],
       });
+      if(dbResult == null){
+        return res.status(400).json({
+          status: 'fail',
+          message:"user not found",
+        })
+      }
       // Capitalize the first letter of the gender
       const gender =
         dbResult.gender.charAt(0).toUpperCase() + dbResult.gender.slice(1);

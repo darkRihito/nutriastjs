@@ -5,6 +5,7 @@ import cors from "cors";
 
 import userRoutes from "./src/routes/user.js";
 import loginRoutes from "./src/routes/login.js";
+import intakeRoutes from "./src/routes/intakeUser.js";
 
 const port = process.env.PORT || 8000;
 const app = express();
@@ -24,7 +25,7 @@ app.use(
 app.use(
   cors({
     origin: "http://localhost:3000",
-    allowedHeaders: ["Content-Type", "Authorization"],
+    // allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -38,6 +39,7 @@ app.get("/", (req, res) => {
 });
 app.use(userRoutes);
 app.use(loginRoutes);
+app.use(intakeRoutes);
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);

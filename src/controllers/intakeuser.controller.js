@@ -38,6 +38,7 @@ const getById = async (req, res, next) => {
       },
       attributes: ["healthstatus", "feedback"],
     });
+  console.log(today);
     if (check == null) {
       const responseSuccess = new ResponseClass.SuccessResponse(
         "success",
@@ -94,20 +95,23 @@ const getHistory = async (req) => {
 };
 
 const createIntakeUsers = async (req, res, next) => {
-  const { userId } = req.params;
-
+  const userId = req.user.id;
+  // console.log(userId);
   try {
+    console.log(userId)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     today.setHours(today.getHours() + 7);
+    console.log(today)
     const check = await IntakeUsers.findOne({
       where: {
         userid: userId,
-        createdAt: {
-          [Op.gte]: today,
-        },
+        // createdAt: {
+        //   [Op.gte]: today,
+        // },
       },
     });
+    console.log("checllllkk:",check);
     if (check !== null) {
       const responseSuccess = new ResponseClass.SuccessResponse(
         "success",
@@ -116,16 +120,87 @@ const createIntakeUsers = async (req, res, next) => {
       );
       return responseSuccess;
     } else {
+      let totalFat = req.body.totalFat;
+      let totalProtein = req.body.totalProtein;
+      let totalCalory = req.body.totalCalory;
+      let totalFiber = req.body.totalFiber;
+      let totalCarbohidrate = req.body.totalCarbohidrate;
 
-      // FE bakal kirim request body berupa jumlah Protein, Energi, Karbohidrat Lemak, Serat
+      const userdata = await Users.findOne({ where: { id: userId } });
 
-      // let totalFat = 0;
-      // let totalProtein = 0;
-      // let totalCalory = 0;
-      // let totalFiber = 0;
-      // let totalCarbohidrate = 0;
-      // let inputData = req.body;
+      const lackof = [];
 
+      if (totalFat < userdata.fatneed) lackof.push("fat");
+      if (totalProtein < userdata.proteinneed) lackof.push("protein");
+      if (totalCalory < userdata.caloryneed) lackof.push("calory");
+      if (totalFiber < userdata.fiberneed) lackof.push("fiber");
+      if (totalCarbohidrate < (65 / 100) * request.body.caloryintake)
+        lackof.push("carbohidrate");
+
+      let feedback, status;
+
+      if (lackof.length === 0) {
+        feedback =
+          "Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.";
+        status = "EXCELLENT";
+      } else {
+        feedback = `You are not meeting your daily nutrition needs for ${lackof.join(
+          ", "
+        )}. Consider adjusting your diet to include more of these nutrients.`;
+        status = "POOR";
+
+        // Generate feedback for each specific condition
+        const conditions = {
+          protein:
+            "Increase your intake of protein-rich foods such as lean meats, poultry, fish, eggs, dairy, legumes, and nuts.",
+          fat: "Include healthy sources of fats in your diet, such as avocados, nuts, seeds, and olive oil.",
+          calory:
+            "Ensure that you are consuming enough calories to meet your energy needs. Consider adding more nutrient-dense foods to your meals and snacks.",
+          fiber:
+            "Boost your fiber intake by incorporating more fruits, vegetables, whole grains, and legumes into your diet.",
+          carbohidrate:
+            "Include complex carbohydrates like whole grains, fruits, and vegetables to meet your carbohydrate needs.",
+        };
+
+        const specificFeedback = lackof.map((nutrient) => conditions[nutrient]);
+        feedback += "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
+
+        const createdAtValue = new Date();
+        const updatedAtValue = new Date();
+        createdAtValue.setHours(createdAtValue.getHours() + 7);
+        updatedAtValue.setHours(updatedAtValue.getHours() + 7);
+      }
+      try {
+        const intakeUserId = uuidv4();
+        const data = {
+          id: intakeUserId,
+          userid: userId,
+          fatintake: totalFat,
+          proteinintake: totalProtein,
+          caloryintake: totalCalory,
+          fiberintake: totalFiber,
+          carbohidrateintake: totalCarbohidrate,
+          healthstatus: status,
+          feedback: feedback,
+          createdAt: createdAtValue,
+          updatedAt: updatedAtValue,
+        };
+        await IntakeUsers.create(data);
+        const responseSuccess = new ResponseClass.SuccessResponse(
+          "success",
+          200,
+          "Insert intake user success!",
+          data
+        );
+        return responseSuccess;
+      } catch (error) {
+        const responseError = new ResponseClass.ErrorResponse(
+          "failed",
+          400,
+          "Error creating intake users!"
+        );
+        return responseError;
+      }
     }
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });

@@ -1,6 +1,9 @@
 import { Users } from "../models/user.model.js";
 import { IntakeUsers } from "../models/intakeuser.model.js";
 
+import { Op } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
+
 import ResponseClass from "../utils/response.js";
 
 const get = async (req, res, next) => {
@@ -38,7 +41,7 @@ const getById = async (req, res, next) => {
       },
       attributes: ["healthstatus", "feedback"],
     });
-  console.log(today);
+    // console.log(today);
     if (check == null) {
       const responseSuccess = new ResponseClass.SuccessResponse(
         "success",
@@ -97,22 +100,26 @@ const getHistory = async (req) => {
 const createIntakeUsers = async (req, res, next) => {
   const userId = req.user.id;
   // console.log(userId);
+
   try {
-    console.log(userId)
+    // console.log(userId);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     today.setHours(today.getHours() + 7);
-    console.log(today)
+    // console.log(req.body);
+
     const check = await IntakeUsers.findOne({
       where: {
         userid: userId,
-        // createdAt: {
-        //   [Op.gte]: today,
-        // },
+        createdAt: {
+          [Op.gte]: today,
+        },
       },
     });
-    console.log("checllllkk:",check);
+    // console.log("check: ", check);
+
     if (check !== null) {
+      console.log("Success udah ngisi")
       const responseSuccess = new ResponseClass.SuccessResponse(
         "success",
         200,
@@ -127,15 +134,13 @@ const createIntakeUsers = async (req, res, next) => {
       let totalCarbohidrate = req.body.totalCarbohidrate;
 
       const userdata = await Users.findOne({ where: { id: userId } });
-
       const lackof = [];
 
       if (totalFat < userdata.fatneed) lackof.push("fat");
       if (totalProtein < userdata.proteinneed) lackof.push("protein");
       if (totalCalory < userdata.caloryneed) lackof.push("calory");
       if (totalFiber < userdata.fiberneed) lackof.push("fiber");
-      if (totalCarbohidrate < (65 / 100) * request.body.caloryintake)
-        lackof.push("carbohidrate");
+      if (totalCarbohidrate < (65 / 100) * req.body.caloryintake) lackof.push("carbohidrate");
 
       let feedback, status;
 
@@ -163,43 +168,45 @@ const createIntakeUsers = async (req, res, next) => {
         };
 
         const specificFeedback = lackof.map((nutrient) => conditions[nutrient]);
-        feedback += "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
+        feedback +=
+          "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
 
         const createdAtValue = new Date();
         const updatedAtValue = new Date();
         createdAtValue.setHours(createdAtValue.getHours() + 7);
         updatedAtValue.setHours(updatedAtValue.getHours() + 7);
-      }
-      try {
-        const intakeUserId = uuidv4();
-        const data = {
-          id: intakeUserId,
-          userid: userId,
-          fatintake: totalFat,
-          proteinintake: totalProtein,
-          caloryintake: totalCalory,
-          fiberintake: totalFiber,
-          carbohidrateintake: totalCarbohidrate,
-          healthstatus: status,
-          feedback: feedback,
-          createdAt: createdAtValue,
-          updatedAt: updatedAtValue,
-        };
-        await IntakeUsers.create(data);
-        const responseSuccess = new ResponseClass.SuccessResponse(
-          "success",
-          200,
-          "Insert intake user success!",
-          data
-        );
-        return responseSuccess;
-      } catch (error) {
-        const responseError = new ResponseClass.ErrorResponse(
-          "failed",
-          400,
-          "Error creating intake users!"
-        );
-        return responseError;
+        try {
+          const intakeUserId = uuidv4();
+          const data = {
+            id: intakeUserId,
+            userid: userId,
+            fatintake: totalFat,
+            proteinintake: totalProtein,
+            caloryintake: totalCalory,
+            fiberintake: totalFiber,
+            carbohidrateintake: totalCarbohidrate,
+            healthstatus: status,
+            feedback: feedback,
+            createdAt: createdAtValue,
+            updatedAt: updatedAtValue,
+          };
+          await IntakeUsers.create(data);
+          const responseSuccess = new ResponseClass.SuccessResponse(
+            "success",
+            200,
+            "Insert intake user success!",
+            data
+          );
+          console.log("JDSKJDK",responseSuccess);
+          return res.status(200).json(responseSuccess);
+        } catch (error) {
+          const responseError = new ResponseClass.ErrorResponse(
+            "failed",
+            400,
+            "Error creating intake users!"
+          );
+          return res.status(400).json(error);
+        }
       }
     }
   } catch (error) {

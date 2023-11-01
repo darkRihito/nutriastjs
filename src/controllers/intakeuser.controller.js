@@ -48,23 +48,23 @@ const getById = async (req, res, next) => {
   }
 };
 
-const getHistorie = async (req, res, next) => {
- // const { intakeUserId } = req.params;
- console.log("AAAAAAAAAAAAAAAAA", req.user.id);
- const userId = req.user.id;
- try {
-   const dbResult = await IntakeUsers.findAll({
-     where: {
-       userid: userId,
-     },
-     order: [["createdAt", "DESC"]],
-   });
-   const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
-   return res.status(200).json(responseSuccess);
- } catch (error) {
-   const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
-   return res.status(400).error;
- }
+const getHistory = async (req, res, next) => {
+  // const { intakeUserId } = req.params;
+  console.log("AAAAAAAAAAAAAAAAA", req.user.id);
+  const userId = req.user.id;
+  try {
+    const dbResult = await IntakeUsers.findAll({
+      where: {
+        userid: userId,
+      },
+      order: [["createdAt", "DESC"]],
+    });
+    const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
+    return res.status(200).json(responseSuccess);
+  } catch (error) {
+    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
+    return res.status(400).error;
+  }
 };
 
 const createIntakeUsers = async (req, res, next) => {
@@ -166,6 +166,6 @@ const createIntakeUsers = async (req, res, next) => {
 export default {
   get,
   getById,
-  getHistorie,
+  getHistory,
   createIntakeUsers,
 };

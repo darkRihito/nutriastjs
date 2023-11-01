@@ -18,7 +18,7 @@ const get = async (req, res, next) => {
 };
 
 const getById = async (req, res, next) => {
-  const { intakeUserId } = req.params;
+  const intakeUserId = req.user.id;
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -41,6 +41,7 @@ const getById = async (req, res, next) => {
       return res.status(200).json(responseSuccess);
     } else {
       const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", check);
+      return res.status(200).json(responseSuccess);
     }
   } catch (error) {
     const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");

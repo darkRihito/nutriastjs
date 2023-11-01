@@ -7,6 +7,6 @@ import intakeUserController from "../controllers/intakeuser.controller.js";
 router.get("/intakeusers", authorization, intakeUserController.get);
 router.get("/intakeusers/:userId", authorization, intakeUserController.getById);
 router.post("/intakeusers", authorization, intakeUserController.createIntakeUsers);
-// router.get("/intakeusers/history/:userId", authorization, intakeUserController.getHistory);
+router.get("/intakeusers/history", authorization, intakeUserController.getHistory);
 
 export default router;

@@ -48,23 +48,23 @@ const getById = async (req, res, next) => {
   }
 };
 
-const getHistory = async (req) => {
-  // const { intakeUserId } = req.params;
-  console.log("AAAAAAAAAAAAAAAAA");
-  const userId = req.user.id;
-  try {
-    const dbResult = await IntakeUsers.findAll({
-      where: {
-        userid: userId,
-      },
-      order: [["createdAt", "DESC"]],
-    });
-    const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
-    return responseSuccess;
-  } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
-    return responseError;
-  }
+const getHistorie = async (req, res, next) => {
+ // const { intakeUserId } = req.params;
+ console.log("AAAAAAAAAAAAAAAAA", req.user.id);
+ const userId = req.user.id;
+ try {
+   const dbResult = await IntakeUsers.findAll({
+     where: {
+       userid: userId,
+     },
+     order: [["createdAt", "DESC"]],
+   });
+   const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
+   return res.status(200).json(responseSuccess);
+ } catch (error) {
+   const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
+   return res.status(400).error;
+ }
 };
 
 const createIntakeUsers = async (req, res, next) => {
@@ -151,7 +151,6 @@ const createIntakeUsers = async (req, res, next) => {
           };
           await IntakeUsers.create(data);
           const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Insert intake user success!", data);
-          console.log("JDSKJDK", responseSuccess);
           return res.status(200).json(responseSuccess);
         } catch (error) {
           const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error creating intake users!");
@@ -167,6 +166,6 @@ const createIntakeUsers = async (req, res, next) => {
 export default {
   get,
   getById,
-  getHistory,
+  getHistorie,
   createIntakeUsers,
 };

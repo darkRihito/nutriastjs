@@ -9,19 +9,10 @@ import ResponseClass from "../utils/response.js";
 const get = async (req, res, next) => {
   try {
     const dbResult = await IntakeUsers.findAll({});
-    const responseSuccess = new ResponseClass.SuccessResponse(
-      "success",
-      200,
-      "Fetching intake users successfully!",
-      dbResult
-    );
+    const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
     return res.status(200).json(responseSuccess);
   } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse(
-      "failed",
-      400,
-      "Error fetching intake users!"
-    );
+    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
     return responseError;
   }
 };
@@ -43,56 +34,35 @@ const getById = async (req, res, next) => {
     });
     // console.log(today);
     if (check == null) {
-      const responseSuccess = new ResponseClass.SuccessResponse(
-        "success",
-        200,
-        "Fetching intake users successfully!",
-        {
-          healthstatus: "UNKNOWN",
-          feedback: "You haven't fill intake form for today.",
-        }
-      );
+      const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", {
+        healthstatus: "UNKNOWN",
+        feedback: "You haven't fill intake form for today.",
+      });
       return res.status(200).json(responseSuccess);
     } else {
-      const responseSuccess = new ResponseClass.SuccessResponse(
-        "success",
-        200,
-        "Fetching intake users successfully!",
-        check
-      );
+      const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", check);
     }
   } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse(
-      "failed",
-      400,
-      "Error fetching intake users!"
-    );
+    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
     return responseError;
   }
 };
 
 const getHistory = async (req) => {
-  const { intakeUserId } = req.params;
+  // const { intakeUserId } = req.params;
+  console.log("AAAAAAAAAAAAAAAAA");
+  const userId = req.user.id;
   try {
     const dbResult = await IntakeUsers.findAll({
       where: {
-        userid: intakeUserId,
+        userid: userId,
       },
       order: [["createdAt", "DESC"]],
     });
-    const responseSuccess = new ResponseClass.SuccessResponse(
-      "success",
-      200,
-      "Fetching intake users successfully!",
-      dbResult
-    );
+    const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
     return responseSuccess;
   } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse(
-      "failed",
-      400,
-      "Error fetching intake users!"
-    );
+    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
     return responseError;
   }
 };
@@ -119,12 +89,8 @@ const createIntakeUsers = async (req, res, next) => {
     // console.log("check: ", check);
 
     if (check !== null) {
-      console.log("Success udah ngisi")
-      const responseSuccess = new ResponseClass.SuccessResponse(
-        "success",
-        200,
-        "You have filled this form today!"
-      );
+      console.log("Success udah ngisi");
+      const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "You have filled this form today!");
       return responseSuccess;
     } else {
       let totalFat = req.body.totalFat;
@@ -149,27 +115,20 @@ const createIntakeUsers = async (req, res, next) => {
           "Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.";
         status = "EXCELLENT";
       } else {
-        feedback = `You are not meeting your daily nutrition needs for ${lackof.join(
-          ", "
-        )}. Consider adjusting your diet to include more of these nutrients.`;
+        feedback = `You are not meeting your daily nutrition needs for ${lackof.join(", ")}. Consider adjusting your diet to include more of these nutrients.`;
         status = "POOR";
 
         // Generate feedback for each specific condition
         const conditions = {
-          protein:
-            "Increase your intake of protein-rich foods such as lean meats, poultry, fish, eggs, dairy, legumes, and nuts.",
+          protein: "Increase your intake of protein-rich foods such as lean meats, poultry, fish, eggs, dairy, legumes, and nuts.",
           fat: "Include healthy sources of fats in your diet, such as avocados, nuts, seeds, and olive oil.",
-          calory:
-            "Ensure that you are consuming enough calories to meet your energy needs. Consider adding more nutrient-dense foods to your meals and snacks.",
-          fiber:
-            "Boost your fiber intake by incorporating more fruits, vegetables, whole grains, and legumes into your diet.",
-          carbohidrate:
-            "Include complex carbohydrates like whole grains, fruits, and vegetables to meet your carbohydrate needs.",
+          calory: "Ensure that you are consuming enough calories to meet your energy needs. Consider adding more nutrient-dense foods to your meals and snacks.",
+          fiber: "Boost your fiber intake by incorporating more fruits, vegetables, whole grains, and legumes into your diet.",
+          carbohidrate: "Include complex carbohydrates like whole grains, fruits, and vegetables to meet your carbohydrate needs.",
         };
 
         const specificFeedback = lackof.map((nutrient) => conditions[nutrient]);
-        feedback +=
-          "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
+        feedback += "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
 
         const createdAtValue = new Date();
         const updatedAtValue = new Date();
@@ -191,20 +150,11 @@ const createIntakeUsers = async (req, res, next) => {
             updatedAt: updatedAtValue,
           };
           await IntakeUsers.create(data);
-          const responseSuccess = new ResponseClass.SuccessResponse(
-            "success",
-            200,
-            "Insert intake user success!",
-            data
-          );
-          console.log("JDSKJDK",responseSuccess);
+          const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Insert intake user success!", data);
+          console.log("JDSKJDK", responseSuccess);
           return res.status(200).json(responseSuccess);
         } catch (error) {
-          const responseError = new ResponseClass.ErrorResponse(
-            "failed",
-            400,
-            "Error creating intake users!"
-          );
+          const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error creating intake users!");
           return res.status(400).json(error);
         }
       }

@@ -63,7 +63,7 @@ const getById = async (req, res, next) => {
         "success",
         200,
         "Fetching user by Id successfully!",
-        { ...dbResult.toJSON(), gender, age }
+        { ...dbResult.toJSON(), gender, age, userId }
       );
       return res.status(200).json(responseSuccess);
     } catch (err) {

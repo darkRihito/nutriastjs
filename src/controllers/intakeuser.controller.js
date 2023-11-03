@@ -32,11 +32,10 @@ const getById = async (req, res, next) => {
       },
       attributes: ["healthstatus", "feedback"],
     });
-    // console.log(today);
     if (check == null) {
       const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", {
-        healthstatus: "UNKNOWN",
-        feedback: "You haven't fill intake form for today.",
+        healthstatus: "Unknown",
+        feedback: "You haven't fill intake form for today. Please do checkout first by click this button below",
       });
       return res.status(200).json(responseSuccess);
     } else {
@@ -51,7 +50,6 @@ const getById = async (req, res, next) => {
 
 const getHistory = async (req, res, next) => {
   // const { intakeUserId } = req.params;
-  console.log("AAAAAAAAAAAAAAAAA", req.user.id);
   const userId = req.user.id;
   try {
     const dbResult = await IntakeUsers.findAll({
@@ -70,14 +68,11 @@ const getHistory = async (req, res, next) => {
 
 const createIntakeUsers = async (req, res, next) => {
   const userId = req.user.id;
-  // console.log(userId);
 
   try {
-    // console.log(userId);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     today.setHours(today.getHours() + 7);
-    // console.log(req.body);
 
     const check = await IntakeUsers.findOne({
       where: {
@@ -87,10 +82,8 @@ const createIntakeUsers = async (req, res, next) => {
         },
       },
     });
-    // console.log("check: ", check);
 
     if (check !== null) {
-      console.log("Success udah ngisi");
       const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "You have filled this form today!");
       return responseSuccess;
     } else {
@@ -114,10 +107,10 @@ const createIntakeUsers = async (req, res, next) => {
       if (lackof.length === 0) {
         feedback =
           "Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.";
-        status = "EXCELLENT";
+        status = "Excellent";
       } else {
         feedback = `You are not meeting your daily nutrition needs for ${lackof.join(", ")}. Consider adjusting your diet to include more of these nutrients.`;
-        status = "POOR";
+        status = "Poor";
 
         // Generate feedback for each specific condition
         const conditions = {

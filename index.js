@@ -6,6 +6,7 @@ import cors from "cors";
 import userRoutes from "./src/routes/user.js";
 import loginRoutes from "./src/routes/login.js";
 import intakeRoutes from "./src/routes/intakeUser.js";
+import predictRoutes from "./src/routes/predict.js";
 
 const port = process.env.PORT || 8000;
 const app = express();
@@ -40,6 +41,7 @@ app.get("/", (req, res) => {
 app.use(userRoutes);
 app.use(loginRoutes);
 app.use(intakeRoutes);
+app.use(predictRoutes);
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);

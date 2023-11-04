@@ -1,10 +1,9 @@
 import express from "express";
 const router = express.Router();
-const app = express();
 
-// import authorization from "../middleware/authorization.js";
+import authorization from "../middleware/authorization.js";
 import predictController from "../controllers/predict.controller.js";
 
-router.post("/predict/:userId", predictController.predict);
+router.post("/predict", authorization, predictController.predict);
 
 export default router;

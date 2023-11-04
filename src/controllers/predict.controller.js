@@ -1,20 +1,14 @@
 import ResponseClass from "../utils/response.js";
 import fetch from "node-fetch";
 import { Users } from "../models/user.model.js";
+import { IntakeUsers } from "../models/intakeuser.model.js";
 
 const predict = async (req, res, next) => {
-  // get userid from params
-  const { userId } = req.params;
+  const userId = req.user.id;
   try {
-    // get user data profile
-    try {
-      const userdata = await Users.findOne({
-        where: { id: userId },
-      });
-    } catch (error) {
-      console.error("Error while getting data user to predict", error.message);
-    }
-    // get data from redict form
+    const userdata = await Users.findOne({
+      where: { id: userId },
+    });
     if (
       req.body.cholesterol == null ||
       req.body.gluc == null ||
@@ -41,7 +35,6 @@ const predict = async (req, res, next) => {
       } else if (userdata.gender == "female") {
         gender = 2;
       }
-      //  make new data object
       let data = {
         age: age,
         gender: gender,
@@ -56,7 +49,6 @@ const predict = async (req, res, next) => {
         active: req.body.active,
       };
       try {
-        // Make a POST request to the prediction API
         const response = await fetch(
           "https://nutriastml-2qo27ggsha-et.a.run.app/predict",
           {
@@ -74,7 +66,6 @@ const predict = async (req, res, next) => {
         } else if (jsonData.prediction == 0) {
           cardiovascular = "Safe";
         }
-        // Update the database with prediction data
         const updateValues = {
           cholesterol: req.body.cholesterol,
           glucose: req.body.gluc,
@@ -84,6 +75,13 @@ const predict = async (req, res, next) => {
           active: req.body.active,
         };
         await Users.update(updateValues, { where: { id: userId } });
+        const responseSuccess = new ResponseClass.SuccessResponse(
+          "success",
+          200,
+          "Predict sucess!",
+          updateValues
+        );
+        return res.status(200).json(responseSuccess);
       } catch (error) {
         console.error(`Error while make post to API`, error.message);
         next(error);
@@ -95,4 +93,4 @@ const predict = async (req, res, next) => {
   }
 };
 
-export default predict;
+export default { predict };

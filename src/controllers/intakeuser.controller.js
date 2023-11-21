@@ -31,6 +31,8 @@ const getById = async (req, res, next) => {
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    today.setHours(today.getHours() + 7);
+
     // cek apakah user sudah melakukan intake hari ini
     const check = await IntakeUsers.findOne({
       where: {
@@ -41,6 +43,7 @@ const getById = async (req, res, next) => {
       },
       attributes: ["healthstatus", "feedback"],
     });
+
     if (check == null) {
       const responseSuccess = new ResponseClass.SuccessResponse(
         "success",
@@ -100,8 +103,7 @@ const getHistory = async (req, res, next) => {
 };
 
 const createIntakeUsers = async (req, res, next) => {
-  console.log("MAsokkkk");
-  console.log(req.body);
+
   const userId = req.user.id;
 
   try {
@@ -118,21 +120,16 @@ const createIntakeUsers = async (req, res, next) => {
       },
     });
 
-    if (check !== null) {
-      const responseSuccess = new ResponseClass.SuccessResponse(
-        "success",
-        200,
-        "You have filled this form today!"
-      );
-      return responseSuccess;
-    } else {
+    // kalau belum bikin record baru di hari itu
+    if (check == null) {
+
       let totalFat = req.body.totalFat;
       let totalProtein = req.body.totalProtein;
       let totalCalory = req.body.totalCalory;
       let totalFiber = req.body.totalFiber;
       let totalCarbohidrate = req.body.totalCarbohidrate;
-
       const userdata = await Users.findOne({ where: { id: userId } });
+
       const lackof = [];
 
       if (totalFat < userdata.fatneed) lackof.push("fat");
@@ -141,8 +138,8 @@ const createIntakeUsers = async (req, res, next) => {
       if (totalFiber < userdata.fiberneed) lackof.push("fiber");
       if (totalCarbohidrate < (65 / 100) * req.body.caloryintake)
         lackof.push("carbohidrate");
-      let feedback, status;
 
+      let feedback, status;
       if (lackof.length === 0) {
         feedback = `Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.`;
         status = "Excellent";
@@ -168,7 +165,6 @@ const createIntakeUsers = async (req, res, next) => {
         feedback +=
           "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
       }
-
       const createdAtValue = new Date();
       const updatedAtValue = new Date();
       createdAtValue.setHours(createdAtValue.getHours() + 7);
@@ -190,6 +186,93 @@ const createIntakeUsers = async (req, res, next) => {
           updatedAt: updatedAtValue,
         };
         await IntakeUsers.create(data);
+        const responseSuccess = new ResponseClass.SuccessResponse(
+          "success",
+          200,
+          "Insert intake user success!",
+          data
+        );
+        return res.status(200).json(responseSuccess);
+      } catch (error) {
+        const responseError = new ResponseClass.ErrorResponse(
+          "failed",
+          400,
+          "Error creating intake users!"
+        );
+        return res.status(400).json(error);
+      }
+    } else {
+
+      // kalau udah ada lakuin update ke record yang ada
+
+      let totalFat = req.body.totalFat + check.fatintake;
+      let totalProtein = req.body.totalProtein + check.proteinintake;
+      let totalCalory = req.body.totalCalory + check.caloryintake;
+      let totalFiber = req.body.totalFiber + check.fiberintake;
+      let totalCarbohidrate = req.body.totalCarbohidrate + check.carbohidrateintake;
+
+      const userdata = await Users.findOne({ where: { id: userId } });
+
+      const lackof = [];
+
+      if (totalFat < userdata.fatneed) lackof.push("fat");
+      if (totalProtein < userdata.proteinneed) lackof.push("protein");
+      if (totalCalory < userdata.caloryneed) lackof.push("calory");
+      if (totalFiber < userdata.fiberneed) lackof.push("fiber");
+      if (totalCarbohidrate < (65 / 100) * req.body.caloryintake)
+        lackof.push("carbohidrate");
+
+      let feedback, status;
+      if (lackof.length === 0) {
+        feedback = `Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.`;
+        status = "Excellent";
+      } else {
+        feedback = `You are not meeting your daily nutrition needs for ${lackof.join(
+          ", "
+        )}. Consider adjusting your diet to include more of these nutrients.`;
+        status = "Poor";
+
+        // Generate feedback for each specific condition
+        const conditions = {
+          protein:
+            "Increase your intake of protein-rich foods such as lean meats, poultry, fish, eggs, dairy, legumes, and nuts.",
+          fat: "Include healthy sources of fats in your diet, such as avocados, nuts, seeds, and olive oil.",
+          calory:
+            "Ensure that you are consuming enough calories to meet your energy needs. Consider adding more nutrient-dense foods to your meals and snacks.",
+          fiber:
+            "Boost your fiber intake by incorporating more fruits, vegetables, whole grains, and legumes into your diet.",
+          carbohidrate:
+            "Include complex carbohydrates like whole grains, fruits, and vegetables to meet your carbohydrate needs.",
+        };
+        const specificFeedback = lackof.map((nutrient) => conditions[nutrient]);
+        feedback +=
+          "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
+      }
+      // const createdAtValue = new Date();
+      const updatedAtValue = new Date();
+      createdAtValue.setHours(createdAtValue.getHours() + 7);
+      updatedAtValue.setHours(updatedAtValue.getHours() + 7);
+
+      try {
+        const intakeUserId = uuidv4();
+        const data = {
+          id: intakeUserId,
+          userid: userId,
+          fatintake: totalFat,
+          proteinintake: totalProtein,
+          caloryintake: totalCalory,
+          fiberintake: totalFiber,
+          carbohidrateintake: totalCarbohidrate,
+          healthstatus: status,
+          feedback: feedback,
+          // createdAt: createdAtValue,
+          updatedAt: updatedAtValue,
+        };
+        await IntakeUsers.update(data, {
+          where: {
+            id: check.id,
+          },
+        });
         const responseSuccess = new ResponseClass.SuccessResponse(
           "success",
           200,

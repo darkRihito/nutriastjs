@@ -9,10 +9,19 @@ import ResponseClass from "../utils/response.js";
 const get = async (req, res, next) => {
   try {
     const dbResult = await IntakeUsers.findAll({});
-    const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
+    const responseSuccess = new ResponseClass.SuccessResponse(
+      "success",
+      200,
+      "Fetching intake users successfully!",
+      dbResult
+    );
     return res.status(200).json(responseSuccess);
   } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
+    const responseError = new ResponseClass.ErrorResponse(
+      "failed",
+      400,
+      "Error fetching intake users!"
+    );
     return responseError;
   }
 };
@@ -33,17 +42,32 @@ const getById = async (req, res, next) => {
       attributes: ["healthstatus", "feedback"],
     });
     if (check == null) {
-      const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", {
-        healthstatus: "Unknown",
-        feedback: "You haven't fill intake form for today. Please do checkout first by click this button below",
-      });
+      const responseSuccess = new ResponseClass.SuccessResponse(
+        "success",
+        200,
+        "Fetching intake users successfully!",
+        {
+          healthstatus: "Unknown",
+          feedback:
+            "You haven't fill intake form for today. Please do checkout first by click this button below",
+        }
+      );
       return res.status(200).json(responseSuccess);
     } else {
-      const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", check);
+      const responseSuccess = new ResponseClass.SuccessResponse(
+        "success",
+        200,
+        "Fetching intake users successfully!",
+        check
+      );
       return res.status(200).json(responseSuccess);
     }
   } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
+    const responseError = new ResponseClass.ErrorResponse(
+      "failed",
+      400,
+      "Error fetching intake users!"
+    );
     return responseError;
   }
 };
@@ -58,15 +82,26 @@ const getHistory = async (req, res, next) => {
       },
       order: [["createdAt", "DESC"]],
     });
-    const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Fetching intake users successfully!", dbResult);
+    const responseSuccess = new ResponseClass.SuccessResponse(
+      "success",
+      200,
+      "Fetching intake users successfully!",
+      dbResult
+    );
     return res.status(200).json(responseSuccess);
   } catch (error) {
-    const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error fetching intake users!");
+    const responseError = new ResponseClass.ErrorResponse(
+      "failed",
+      400,
+      "Error fetching intake users!"
+    );
     return res.status(400).error;
   }
 };
 
 const createIntakeUsers = async (req, res, next) => {
+  console.log("MAsokkkk");
+  console.log(req.body);
   const userId = req.user.id;
 
   try {
@@ -84,7 +119,11 @@ const createIntakeUsers = async (req, res, next) => {
     });
 
     if (check !== null) {
-      const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "You have filled this form today!");
+      const responseSuccess = new ResponseClass.SuccessResponse(
+        "success",
+        200,
+        "You have filled this form today!"
+      );
       return responseSuccess;
     } else {
       let totalFat = req.body.totalFat;
@@ -100,56 +139,71 @@ const createIntakeUsers = async (req, res, next) => {
       if (totalProtein < userdata.proteinneed) lackof.push("protein");
       if (totalCalory < userdata.caloryneed) lackof.push("calory");
       if (totalFiber < userdata.fiberneed) lackof.push("fiber");
-      if (totalCarbohidrate < (65 / 100) * req.body.caloryintake) lackof.push("carbohidrate");
-
+      if (totalCarbohidrate < (65 / 100) * req.body.caloryintake)
+        lackof.push("carbohidrate");
       let feedback, status;
 
       if (lackof.length === 0) {
-        feedback =
-          "Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.";
+        feedback = `Great job on meeting your daily nutrition needs! Keep up the good work and continue to prioritize a balanced and healthy diet. Remember to listen to your body and make adjustments as necessary to maintain optimal health.`;
         status = "Excellent";
       } else {
-        feedback = `You are not meeting your daily nutrition needs for ${lackof.join(", ")}. Consider adjusting your diet to include more of these nutrients.`;
+        feedback = `You are not meeting your daily nutrition needs for ${lackof.join(
+          ", "
+        )}. Consider adjusting your diet to include more of these nutrients.`;
         status = "Poor";
 
         // Generate feedback for each specific condition
         const conditions = {
-          protein: "Increase your intake of protein-rich foods such as lean meats, poultry, fish, eggs, dairy, legumes, and nuts.",
+          protein:
+            "Increase your intake of protein-rich foods such as lean meats, poultry, fish, eggs, dairy, legumes, and nuts.",
           fat: "Include healthy sources of fats in your diet, such as avocados, nuts, seeds, and olive oil.",
-          calory: "Ensure that you are consuming enough calories to meet your energy needs. Consider adding more nutrient-dense foods to your meals and snacks.",
-          fiber: "Boost your fiber intake by incorporating more fruits, vegetables, whole grains, and legumes into your diet.",
-          carbohidrate: "Include complex carbohydrates like whole grains, fruits, and vegetables to meet your carbohydrate needs.",
+          calory:
+            "Ensure that you are consuming enough calories to meet your energy needs. Consider adding more nutrient-dense foods to your meals and snacks.",
+          fiber:
+            "Boost your fiber intake by incorporating more fruits, vegetables, whole grains, and legumes into your diet.",
+          carbohidrate:
+            "Include complex carbohydrates like whole grains, fruits, and vegetables to meet your carbohydrate needs.",
         };
-
         const specificFeedback = lackof.map((nutrient) => conditions[nutrient]);
-        feedback += "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
+        feedback +=
+          "\n\nSpecific recommendations:\n" + specificFeedback.join("\n");
+      }
 
-        const createdAtValue = new Date();
-        const updatedAtValue = new Date();
-        createdAtValue.setHours(createdAtValue.getHours() + 7);
-        updatedAtValue.setHours(updatedAtValue.getHours() + 7);
-        try {
-          const intakeUserId = uuidv4();
-          const data = {
-            id: intakeUserId,
-            userid: userId,
-            fatintake: totalFat,
-            proteinintake: totalProtein,
-            caloryintake: totalCalory,
-            fiberintake: totalFiber,
-            carbohidrateintake: totalCarbohidrate,
-            healthstatus: status,
-            feedback: feedback,
-            createdAt: createdAtValue,
-            updatedAt: updatedAtValue,
-          };
-          await IntakeUsers.create(data);
-          const responseSuccess = new ResponseClass.SuccessResponse("success", 200, "Insert intake user success!", data);
-          return res.status(200).json(responseSuccess);
-        } catch (error) {
-          const responseError = new ResponseClass.ErrorResponse("failed", 400, "Error creating intake users!");
-          return res.status(400).json(error);
-        }
+      const createdAtValue = new Date();
+      const updatedAtValue = new Date();
+      createdAtValue.setHours(createdAtValue.getHours() + 7);
+      updatedAtValue.setHours(updatedAtValue.getHours() + 7);
+
+      try {
+        const intakeUserId = uuidv4();
+        const data = {
+          id: intakeUserId,
+          userid: userId,
+          fatintake: totalFat,
+          proteinintake: totalProtein,
+          caloryintake: totalCalory,
+          fiberintake: totalFiber,
+          carbohidrateintake: totalCarbohidrate,
+          healthstatus: status,
+          feedback: feedback,
+          createdAt: createdAtValue,
+          updatedAt: updatedAtValue,
+        };
+        await IntakeUsers.create(data);
+        const responseSuccess = new ResponseClass.SuccessResponse(
+          "success",
+          200,
+          "Insert intake user success!",
+          data
+        );
+        return res.status(200).json(responseSuccess);
+      } catch (error) {
+        const responseError = new ResponseClass.ErrorResponse(
+          "failed",
+          400,
+          "Error creating intake users!"
+        );
+        return res.status(400).json(error);
       }
     }
   } catch (error) {

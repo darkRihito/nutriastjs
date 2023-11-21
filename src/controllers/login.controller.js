@@ -130,6 +130,10 @@ const register = async (req, res, next) => {
       const emailRegexp =
         /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
       // Check if email is valid
+      if(age<0 || req.body.height<0 || req.body.weight<0){
+        const responseError = new ResponseClass.ErrorResponse("error", 400,"Data input is invalid!");
+        return res.status(400).json(responseError);
+      }
       if (emailRegexp.test(req.body.email) == false) {
         const responseError = new ResponseClass.ErrorResponse(
           "error",

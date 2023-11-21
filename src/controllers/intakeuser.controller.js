@@ -204,6 +204,7 @@ const createIntakeUsers = async (req, res, next) => {
     } else {
 
       // kalau udah ada lakuin update ke record yang ada
+      console.log("COKKK")
 
       let totalFat = req.body.totalFat + check.fatintake;
       let totalProtein = req.body.totalProtein + check.proteinintake;
@@ -250,7 +251,7 @@ const createIntakeUsers = async (req, res, next) => {
       }
       // const createdAtValue = new Date();
       const updatedAtValue = new Date();
-      createdAtValue.setHours(createdAtValue.getHours() + 7);
+      // createdAtValue.setHours(createdAtValue.getHours() + 7);
       updatedAtValue.setHours(updatedAtValue.getHours() + 7);
 
       try {

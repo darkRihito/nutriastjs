@@ -36,7 +36,7 @@ export const IntakeUsers = db.define(
     },
     createdAt: {
       type: DataTypes.DATE,
-      allowNull: false,
+      // allowNull: false,
       defaultValue: DataTypes.NOW,
     },
     updatedAt: {
